@@ -1,5 +1,10 @@
 import os, inspect
-from distutils.core import setup, Extension
+
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    from distutils.core import setup, Extension
+
 file_path = os.path.dirname(inspect.stack()[0][1])
 
 with open("README.md", "r") as fh:

@@ -133,11 +133,13 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
     double total_weights = 0;
     int maximum_score = 0;
     int error = 0;
+    int average_peptide_length = 0;
     for (int i = 0; i < peptides_num; i++)
     {
         PyObject* peptide = PyList_GetItem(peptides_list, i);
         peptides_strs[i] = PyUnicode_AsUTF8(peptide);
         peptides_lengths[i] = strlen(peptides_strs[i]);
+        average_peptide_length += peptides_lengths[i];
         
         if (peptides_lengths[i] < 2) {
             PyErr_SetString(PyExc_Exception, "Found a sequence with less than 2 letters");
@@ -203,7 +205,8 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
             .peptides_lengths = NULL,
             .peptides_weights = NULL,
             .total_weights = 0,
-            .maximum_score = 0
+            .maximum_score = 0,
+            .average_peptide_length = 0
         };
         return dataset;
     }
@@ -214,7 +217,8 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
         .peptides_lengths = peptides_lengths,
         .peptides_weights = peptides_weights,
         .total_weights = total_weights,
-        .maximum_score = maximum_score
+        .maximum_score = maximum_score,
+        .average_peptide_length = average_peptide_length/peptides_num
     };
 
     return dataset;
@@ -235,6 +239,7 @@ MatchResult match_sequences(const char* sA, const char* sB, int n, int m, double
     int found_match = 0;
     
     // Allocate memory for the result
+    // sA_scores and sB_scores are the scores of the best match score of each letter in sA and sB respectively. They are not necessarily and they can be replaced by the best match score of the whole sequence and matched_chars arrays. However, they were used to keep track of the best match score of each letter in the sequence when calculating the best match score per letter (legacy).
     double *sA_scores = malloc(sizeof(double) * n);
     double *sB_scores = malloc(sizeof(double) * m);
     char *sA_matched_chars = malloc(sizeof(char) * n);
@@ -341,15 +346,9 @@ double* calculate_similarity_pvals(Dataset dataset) {
 
             MatchResult match = match_sequences(peptide1_str, peptide2_str, peptide1_len, peptide2_len, NULL, NULL, calculate_residue_score_using_blosum);
 
-            for (int k = 0; k < peptide1_len; ++k) {
-                int res_score = match.sA_scores[k];
-                pvals[res_score] += (dataset.peptides_weights[j] * dataset.total_weights) / (dataset.total_weights - dataset.peptides_weights[i]);
-            }
-
-            for (int k = 0; k < peptide2_len; ++k) {
-                int res_score = match.sB_scores[k];
-                pvals[res_score] += (dataset.peptides_weights[i] * dataset.total_weights) / (dataset.total_weights - dataset.peptides_weights[j]);
-            }
+            int match_score = match.match_score;
+            pvals[match_score] += (dataset.peptides_weights[j] * dataset.total_weights) / (dataset.total_weights - dataset.peptides_weights[i]);
+            pvals[match_score] += (dataset.peptides_weights[i] * dataset.total_weights) / (dataset.total_weights - dataset.peptides_weights[j]);
 
             // Cleanup
             free_match_result(&match);
@@ -511,39 +510,72 @@ int check_convergence(double*** new_peptides_scores, double*** peptides_scores, 
     return (sum_of_diff < convergence_threshold) ? 1 : 0;
 }
 
-IterativeSimilarityScoresResult calculate_iterative_similarity_scores(Dataset dataset) {
-    double* similarity_pvals = calculate_similarity_pvals(dataset);
+IterativeSimilarityScoresResult calculate_iterative_similarity_scores(Dataset dataset, double* similarity_pvals, int refine) {
     double*** peptides_scores = calculate_similarity_scores(dataset, similarity_pvals, NULL, 0);
-    free(similarity_pvals);
-    
-    normalize_scores(peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
-    int converged = 0;
     int itr = 0;
-    do
-    {
-        itr++;
-        double*** new_peptides_scores = calculate_similarity_scores(dataset, NULL, peptides_scores, itr);
-        normalize_scores(new_peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
-        
-        converged = check_convergence(new_peptides_scores, peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
-        
-        for (int i = 0; i < dataset.peptides_num; i++)
+
+    // Refine the scores
+    if (refine) {
+        normalize_scores(peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
+        int converged = 0;
+        do
         {
-            for (int l = 0; l < 25; ++l)
+            itr++;
+            double*** new_peptides_scores = calculate_similarity_scores(dataset, NULL, peptides_scores, itr);
+            normalize_scores(new_peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
+            
+            converged = check_convergence(new_peptides_scores, peptides_scores, dataset.peptides_lengths, dataset.peptides_num);
+            
+            for (int i = 0; i < dataset.peptides_num; i++)
             {
-                free(peptides_scores[i][l]);
+                for (int l = 0; l < 25; ++l)
+                {
+                    free(peptides_scores[i][l]);
+                }
+                free(peptides_scores[i]);
             }
-            free(peptides_scores[i]);
+            free(peptides_scores);
+            
+            peptides_scores = new_peptides_scores;
         }
-        free(peptides_scores);
-        
-        peptides_scores = new_peptides_scores;
+        while (!converged && itr < 100);
     }
-    while (!converged && itr < 100);
 
     IterativeSimilarityScoresResult result = {
         .peptides_scores = peptides_scores,
         .iterations = itr
+    };
+
+    return result;
+}
+
+AAFreq calculate_aa_freq(Dataset dataset) {
+    // Calculate amino acid frequencies
+    double* aa_freq = calloc(25, sizeof(double));
+    int aa_total = 0;
+    double* wt_aa_freq = calloc(25, sizeof(double));
+    double wt_aa_total = 0;
+    for (int i = 0; i < dataset.peptides_num; i++) {
+        const char* sA = dataset.peptides_strs[i];
+        for (int j = 0; j < dataset.peptides_lengths[i]; j++) {
+            char x = sA[j];
+            int x_indx = get_letter_index(x);
+            aa_freq[x_indx] += 1;
+            aa_total += 1;
+            wt_aa_freq[x_indx] += dataset.peptides_weights[i];
+            wt_aa_total += dataset.peptides_weights[i];
+        }
+    }
+    // Normalize amino acid frequencies
+    for (int l = 0; l < 25; ++l) {
+        aa_freq[l] /= aa_total;
+        wt_aa_freq[l] /= wt_aa_total;
+    }
+
+    // Create an AAFreq struct and assign the result arrays
+    AAFreq result = {
+        .aa_freq = aa_freq,
+        .wt_aa_freq = wt_aa_freq
     };
 
     return result;
@@ -562,29 +594,7 @@ int compare_scores(const void* a, const void* b) {
     }
 }
 
-MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores) {
-    // Calculate amino acid frequencies
-    double aa_freq[25] = {0};
-    int aa_total = 0;
-    double wt_aa_freq[25] = {0};
-    double wt_aa_total = 0;
-    for (int i = 0; i < dataset.peptides_num; i++) {
-        const char* sA = dataset.peptides_strs[i];
-        for (int j = 0; j < dataset.peptides_lengths[i]; j++) {
-            char x = sA[j];
-            int x_indx = get_letter_index(x);
-            aa_freq[x_indx] += 1;
-            aa_total += 1;
-            wt_aa_freq[x_indx] += dataset.peptides_weights[i];
-            wt_aa_total += dataset.peptides_weights[i];
-        }
-    }
-    // Normalize amino acid frequencies
-    for (int l = 0; l < 25; ++l) {
-        aa_freq[l] /= aa_total;
-        wt_aa_freq[l] /= wt_aa_total;
-    }
-    
+MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores, double* aa_freq, double* wt_aa_freq, int normalization_factor) {
     // Allocate arrays to store results
     // Similarity motif for a peptide is extracted from its similarity matrix
     char** similarity_motifs = malloc(sizeof(char*)*dataset.peptides_num);
@@ -610,8 +620,11 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores)
     
     // Calculate a conservative size of the motif space
     double B_L = 0;
-    for (int i = 0; i < dataset.peptides_num; i++) {
-        B_L += dataset.peptides_lengths[i]*20;
+    if (normalization_factor < 1) {
+        B_L = dataset.average_peptide_length*20;
+    } else {
+        // Normalise the number of peptides in the dataset to the normalisation factor
+        B_L = normalization_factor*dataset.average_peptide_length*20;
     }
 
     // Loop over all peptides
@@ -695,6 +708,11 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores)
             if (actual_motif_length < 2) {
                 continue;
             }
+            // If the actual motif length is greater than the average peptide length, break the loop
+            int total_motif_length = motif_end+1-motif_start;
+            if (total_motif_length > dataset.average_peptide_length) {
+                break;
+            }
             // Form the regex string
             for (int j = motif_start; j < motif_end+1; j++) {
                 if (pos_chars_counts[j] > 0) {
@@ -751,18 +769,26 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores)
             regfree(&rgx);
 
             // Calculate the probability of the motif in the dataset
-            int total_motif_length = motif_end+1-motif_start;
-            double N_m = peptide_length-total_motif_length+1;
+            double N_m = dataset.average_peptide_length-total_motif_length+1;
             double p_1_plus = 1-pow(1-p_m, N_m);
             double wt_p_1_plus = 1-pow(1-wt_p_m, N_m);
+            int num_sequences_with_motif_in_normalization_factor;
+            int num_trials;
+            if (normalization_factor < 1) {
+                num_sequences_with_motif_in_normalization_factor = num_sequences_with_motif;
+                num_trials = dataset.peptides_num;
+            } else {
+                num_sequences_with_motif_in_normalization_factor = num_sequences_with_motif*normalization_factor/dataset.peptides_num;
+                num_trials = normalization_factor;
+            }
 
             double survival = 1;
             double sig = 1;
             // If the number of sequences with the motif is greater than 1 (to avoid self-matching), calculate the p-value of the motif
             if (num_sequences_with_motif > 1)
             {
-                survival = calculate_binomial_pmf_plus_survival(num_sequences_with_motif, dataset.peptides_num, p_1_plus);
-                double wt_survival = calculate_binomial_pmf_plus_survival(num_sequences_with_motif, dataset.peptides_num, wt_p_1_plus);
+                survival = calculate_binomial_pmf_plus_survival(num_sequences_with_motif_in_normalization_factor, num_trials, p_1_plus);
+                double wt_survival = calculate_binomial_pmf_plus_survival(num_sequences_with_motif_in_normalization_factor, num_trials, wt_p_1_plus);
                 sig = 1-pow(1-wt_survival,B_L);
             }
             // If the p-value of the motif is less than the p-value of the previous iteration, update the p-value and the motif
@@ -857,12 +883,12 @@ int get_best_residue_score_peptide_indx(double*** peptides_scores, int* peptides
 AlignmentResult align_dataset_to_peptide(Dataset dataset, double*** peptides_scores, int peptide_indx) {
     // Check if the peptide index is valid
     if (peptide_indx < 0 || peptide_indx >= dataset.peptides_num) {
-        AlignmentResult result = { .peptide_indx = -1, .min_best_align_start = -1, .max_best_align_start = -1, .best_alignment_starts = NULL, .best_alignment_scores = NULL };
+        AlignmentResult result = { .peptide_indx = -1, .min_best_align_start = -1, .max_best_align_end = -1, .best_alignment_starts = NULL, .best_alignment_scores = NULL };
         return result;
     }
 
     int min_best_align_start = INT_MAX;
-    int max_best_align_start = INT_MIN;
+    int max_best_align_end = INT_MIN;
     int* best_alignment_starts = malloc(sizeof(int)*dataset.peptides_num);
     double* best_alignment_scores = malloc(sizeof(double)*dataset.peptides_num);
 
@@ -880,8 +906,9 @@ AlignmentResult align_dataset_to_peptide(Dataset dataset, double*** peptides_sco
         if (best_alignment_start < min_best_align_start) {
             min_best_align_start = best_alignment_start;
         }
-        if (best_alignment_start > max_best_align_start) {
-            max_best_align_start = best_alignment_start;
+        int best_align_end = (peptide1_len > peptide2_len)? (best_alignment_start + peptide1_len) : (best_alignment_start + peptide2_len);
+        if (best_align_end > max_best_align_end) {
+            max_best_align_end = best_align_end;
         }
 
         // Cleanup
@@ -891,7 +918,7 @@ AlignmentResult align_dataset_to_peptide(Dataset dataset, double*** peptides_sco
     AlignmentResult alignment_result = {
         .peptide_indx = peptide_indx,
         .min_best_align_start = min_best_align_start,
-        .max_best_align_start = max_best_align_start,
+        .max_best_align_end = max_best_align_end,
         .best_alignment_starts = best_alignment_starts,
         .best_alignment_scores = best_alignment_scores
     };
@@ -921,9 +948,9 @@ double get_peptide_similarity_score(const char* sequence, double** peptide_score
     return similarity_score;
 }
 
-char* generate_align_string_for_peptide(const char* sequence, int sequence_length, int best_align_start, int min_best_align_start, int max_best_align_start) {
+char* generate_align_string_for_peptide(const char* sequence, int sequence_length, int best_align_start, int min_best_align_start, int max_best_align_end) {
     // Calculate the new length after aligning with adding dashes
-    int new_length = sequence_length - min_best_align_start + max_best_align_start;
+    int new_length = max_best_align_end - min_best_align_start;
     
     // Allocate memory for the new aligned sequence
     char* new_sequence = (char*)malloc((new_length + 1) * sizeof(char));
@@ -971,13 +998,16 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     
     PyObject* letters_objects[25];
     fill_letters_objects(letters_objects);
-    PyObject* iterations_str_obj = PyUnicode_FromString("iterations");
+    PyObject* iterations_str_obj = PyUnicode_FromString("refinement_iterations");
+    PyObject* consensus_str_obj = PyUnicode_FromString("consensus");
     PyObject* best_motif_str_obj = PyUnicode_FromString("best_motif");
     PyObject* best_motif_p_val_str_obj = PyUnicode_FromString("best_motif_p_val");
     PyObject* best_motif_significance_str_obj = PyUnicode_FromString("best_motif_significance");
-    PyObject* alignment_template_str_obj = PyUnicode_FromString("alignment_template");
+    PyObject* alignment_str_obj = PyUnicode_FromString("alignment");
+    PyObject* alignment_template_str_obj = PyUnicode_FromString("template");
+    PyObject* aligned_sequences_str_obj = PyUnicode_FromString("aligned_sequences");
     PyObject* peptides_str_obj = PyUnicode_FromString("peptides");
-    PyObject* scores_str_obj = PyUnicode_FromString("scores");
+    PyObject* scores_str_obj = PyUnicode_FromString("similarity_matrix");
     PyObject* similarity_motif_str_obj = PyUnicode_FromString("similarity_motif");
     PyObject* similarity_p_val_str_obj = PyUnicode_FromString("similarity_p_val");
     PyObject* similarity_significance_str_obj = PyUnicode_FromString("similarity_significance");
@@ -985,24 +1015,46 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     PyObject* matched_motif_str_obj = PyUnicode_FromString("matched_motif");
     PyObject* matched_p_val_str_obj = PyUnicode_FromString("matched_p_val");
     PyObject* matched_significance_str_obj = PyUnicode_FromString("matched_significance");
-    PyObject* aligned_sequence_str_obj = PyUnicode_FromString("aligned_sequence");
     PyObject* empty_str_obj = PyUnicode_FromString("");
     
+    // Set the number of iterations
     set_int_item_in_dict(result_dict, iterations_str_obj, similarity_scores_result.iterations);
+
+    // Set the extracted consensus motif
+    PyObject* consensus_dict = PyDict_New();
+    PyDict_SetItem(result_dict, consensus_str_obj, consensus_dict);
+
     if (motifs_result.found_motif == 1) {
-        set_string_item_in_dict(result_dict, best_motif_str_obj, motifs_result.similarity_motifs[motifs_result.best_motif_indx]);
+        set_string_item_in_dict(consensus_dict, best_motif_str_obj, motifs_result.similarity_motifs[motifs_result.best_motif_indx]);
     } else {
-        PyDict_SetItem(result_dict, best_motif_str_obj, empty_str_obj);
+        PyDict_SetItem(consensus_dict, best_motif_str_obj, empty_str_obj);
     }
-    set_float_item_in_dict(result_dict, best_motif_p_val_str_obj, motifs_result.best_motif_p_val);
-    set_float_item_in_dict(result_dict, best_motif_significance_str_obj, motifs_result.best_motif_significance);
+    set_float_item_in_dict(consensus_dict, best_motif_p_val_str_obj, motifs_result.best_motif_p_val);
+    set_float_item_in_dict(consensus_dict, best_motif_significance_str_obj, motifs_result.best_motif_significance);
+
+    // Set the produced alignment
+    PyObject* alignment_dict = PyDict_New();
+    PyDict_SetItem(result_dict, alignment_str_obj, alignment_dict);
 
     if (alignment_result.peptide_indx == -1) {
-        PyDict_SetItem(result_dict, alignment_template_str_obj, empty_str_obj);
+        PyDict_SetItem(alignment_dict, alignment_template_str_obj, empty_str_obj);
     } else {
-        PyDict_SetItem(result_dict, alignment_template_str_obj, PyList_GetItem(peptides_list, alignment_result.peptide_indx));
+        PyDict_SetItem(alignment_dict, alignment_template_str_obj, PyList_GetItem(peptides_list, alignment_result.peptide_indx));
+        
+        PyObject* aligned_sequences_dict = PyDict_New();
+        PyDict_SetItem(alignment_dict, aligned_sequences_str_obj, aligned_sequences_dict);
+
+        for (int i = 0; i < dataset.peptides_num; i++) {
+            PyObject* peptide_i = PyList_GetItem(peptides_list, i);
+            char* aligned_sequence = generate_align_string_for_peptide(dataset.peptides_strs[i], dataset.peptides_lengths[i], alignment_result.best_alignment_starts[i], alignment_result.min_best_align_start, alignment_result.max_best_align_end);
+            set_string_item_in_dict(aligned_sequences_dict, peptide_i, aligned_sequence);
+            free(aligned_sequence);
+        }
+        
+        Py_DECREF(aligned_sequences_dict);
     }
 
+    // Set the similarity scores
     PyObject* peptides_dict = PyDict_New();
     PyDict_SetItem(result_dict, peptides_str_obj, peptides_dict);
 
@@ -1050,27 +1102,24 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
         set_float_item_in_dict(peptide_dict, matched_p_val_str_obj, motifs_result.matched_p_vals[i]);
         set_float_item_in_dict(peptide_dict, matched_significance_str_obj, motifs_result.matched_significances[i]);
 
-        if (alignment_result.peptide_indx == -1) {
-            PyDict_SetItem(peptide_dict, aligned_sequence_str_obj, empty_str_obj);
-        } else {
-            char* aligned_sequence = generate_align_string_for_peptide(dataset.peptides_strs[i], dataset.peptides_lengths[i], alignment_result.best_alignment_starts[i], alignment_result.min_best_align_start, alignment_result.max_best_align_start);
-            set_string_item_in_dict(peptide_dict, aligned_sequence_str_obj, aligned_sequence);
-            free(aligned_sequence);
-        }
-
         Py_DECREF(peptide_dict);
         Py_DECREF(scores_dict);
     }
     
     // Cleanup
     vacate_letters_objects(letters_objects);
+    Py_DECREF(consensus_dict);
+    Py_DECREF(alignment_dict);
     Py_DECREF(peptides_dict);
     Py_DECREF(peptides_str_obj);
     Py_DECREF(iterations_str_obj);
+    Py_DECREF(consensus_str_obj);
     Py_DECREF(best_motif_str_obj);
     Py_DECREF(best_motif_p_val_str_obj);
     Py_DECREF(best_motif_significance_str_obj);
+    Py_DECREF(alignment_str_obj);
     Py_DECREF(alignment_template_str_obj);
+    Py_DECREF(aligned_sequences_str_obj);
     Py_DECREF(scores_str_obj);
     Py_DECREF(similarity_motif_str_obj);
     Py_DECREF(similarity_p_val_str_obj);
@@ -1079,7 +1128,6 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     Py_DECREF(matched_motif_str_obj);
     Py_DECREF(matched_p_val_str_obj);
     Py_DECREF(matched_significance_str_obj);
-    Py_DECREF(aligned_sequence_str_obj);
     Py_DECREF(empty_str_obj);
 
     return result_dict;
@@ -1116,4 +1164,9 @@ void free_alignment_result(AlignmentResult alignment_result) {
     }
     free(alignment_result.best_alignment_starts);
     free(alignment_result.best_alignment_scores);
+}
+
+void free_aa_freq(AAFreq aa_freq) {
+    free(aa_freq.aa_freq);
+    free(aa_freq.wt_aa_freq);
 }

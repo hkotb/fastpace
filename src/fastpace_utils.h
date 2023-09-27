@@ -23,6 +23,7 @@ typedef struct {
     double* peptides_weights;
     double total_weights;
     int maximum_score;
+    int average_peptide_length;
 } Dataset;
 
 // Structure representing the result of matching two sequences
@@ -41,6 +42,12 @@ typedef struct {
     double*** peptides_scores;
     int iterations;
 } IterativeSimilarityScoresResult;
+
+// Structure representing the amino acid frequencies in the dataset
+typedef struct {
+    double* aa_freq;
+    double* wt_aa_freq;
+} AAFreq;
 
 // Structure representing a cell in the pssm-like scoring matrix of a peptide sequence (aminoAcidIndex-position-score)
 typedef struct {
@@ -67,7 +74,7 @@ typedef struct {
 typedef struct {
     int peptide_indx;
     int min_best_align_start;
-    int max_best_align_start;
+    int max_best_align_end;
     int* best_alignment_starts;
     double* best_alignment_scores;
 } AlignmentResult;
@@ -113,13 +120,16 @@ void normalize_scores(double*** peptides_scores, int* peptides_lengths, Py_ssize
 int check_convergence(double*** new_peptides_scores, double*** peptides_scores, int* peptides_lengths, Py_ssize_t peptides_num);
 
 // Function to calculate iterative similarity scores for the dataset until convergence
-IterativeSimilarityScoresResult calculate_iterative_similarity_scores(Dataset dataset);
+IterativeSimilarityScoresResult calculate_iterative_similarity_scores(Dataset dataset, double* pvals, int refine);
+
+// Function to calculate amino acid frequencies in the dataset
+AAFreq calculate_aa_freq(Dataset dataset);
 
 // Compare function for sorting based on score
 int compare_scores(const void* a, const void* b);
 
 // Function to extract putative motifs from the dataset based on the similarity scores
-MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores);
+MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores, double* aa_freq, double* wt_aa_freq, int normalization_factor);
 
 // Function to get the index of the peptide with the best residue score in the pssm-like similarity matrix
 int get_best_residue_score_peptide_indx(double*** peptides_scores, int* peptides_lengths, Py_ssize_t peptides_num);
@@ -137,7 +147,7 @@ void vacate_letters_objects(PyObject** letters_objects);
 double get_peptide_similarity_score(const char* sequence, double** peptide_scores, int peptide_length);
 
 // Function to generate an aligned string of a sequence by adding dashes
-char* generate_align_string_for_peptide(const char* sequence, int sequence_length, int best_align, int min_best_align_start, int max_best_align_start);
+char* generate_align_string_for_peptide(const char* sequence, int sequence_length, int best_align, int min_best_align_start, int max_best_align_end);
 
 // Function to insert C integer item in a Python dictionary
 void set_int_item_in_dict(PyObject* dict, PyObject* key, int value);
@@ -162,6 +172,9 @@ void free_motifs_result(MotifsResult motifs_result);
 
 // Function to free the memory allocated for the AlignmentResult structure
 void free_alignment_result(AlignmentResult alignment_result);
+
+// Function to free the memory allocated for the AAFreq structure
+void free_aa_freq(AAFreq aa_freq);
 
 
 #endif

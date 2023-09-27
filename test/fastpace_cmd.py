@@ -10,6 +10,8 @@ def get_parsed_args():
     parser.add_argument('--output_file', type=str, help='The path to the output fasta file', required=True)
     parser.add_argument('--draw_logo', action='store_true', help='Draw sequence log of the best peptide or the peptide passed by --sequence.')
     parser.add_argument('--sequence', type=str, help='Draw sequence logo of this peptide.')
+    parser.add_argument('--num_reruns', type=int, help='number of times to rerun the algorithm before returning the results.', default=1)
+    parser.add_argument('--refine', type=int, help='Flag to run the refinement.', default=1)
 
     args = parser.parse_args()
     return args
@@ -48,13 +50,13 @@ def read_fasta(input_file):
 
     return fasta_records
 
-def write_fasta(fasta_records, result_peptides, output_file):
+def write_fasta(fasta_records, aligned_sequences, output_file):
     # Open the output file for writing
     with open(output_file, 'w') as f:
         # Loop through the list of fasta records
         for header, sequence in fasta_records:
             # Write the header and sequence to the output file
-            f.write(header + "\n" + result_peptides[sequence]["aligned_sequence"] + "\n")
+            f.write(header + "\n" + aligned_sequences[sequence] + "\n")
 
 def plt_logo(scores_dict, output_path):
     import pandas as pd
@@ -104,19 +106,30 @@ if __name__ == "__main__":
     args = get_parsed_args()
     fasta_records = read_fasta(args.input_file)
     sequences = [record[1] for record in fasta_records]
-    result_json = fastpace.run_motif_discovery(sequences)
     
-    write_fasta(fasta_records, result_json['peptides'], args.output_file)
+    if args.num_reruns > 1:
+        import re
+        result_json = fastpace.run_motif_discovery(sequences)
+        for i in range(args.num_reruns-1):
+            best_consensus = result_json['consensus']['best_motif'][2:-2]
+            mask = 'X' * len(best_consensus)
+            fasta_records = [(header, re.sub(best_consensus, mask, sequence)) for header, sequence in fasta_records]
+            masked_sequences = [record[1] for record in fasta_records]
+            result_json = fastpace.rerun_motif_discovery(sequences, masked_sequences)
+    else:
+        result_json = fastpace.run_motif_discovery(sequences, refine=args.refine)
+    
+    write_fasta(fasta_records, result_json['alignment']['aligned_sequences'], args.output_file)
     
     if args.draw_logo:
         if args.sequence:
             if args.sequence in result_json['peptides']:
-                plt_logo(result_json['peptides'][args.sequence]['scores'], args.output_file)
+                plt_logo(result_json['peptides'][args.sequence]['similarity_matrix'], args.output_file)
             else:
                 print("Can't draw sequence logo for a sequence not in the dataset!")
         else:
-            alignment_template = result_json['alignment_template']
-            plt_logo(result_json['peptides'][alignment_template]['scores'], args.output_file)
+            alignment_template = result_json['alignment']['template']
+            plt_logo(result_json['peptides'][alignment_template]['similarity_matrix'], args.output_file)
     
     with open(os.path.splitext(args.output_file)[0] +'.json', 'w') as outfile:
         json.dump(result_json, outfile)
