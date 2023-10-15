@@ -621,7 +621,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
     // Calculate a conservative size of the motif space
     double B_L = 0;
     if (normalization_factor < 1) {
-        B_L = dataset.average_peptide_length*20;
+        B_L = dataset.peptides_num*dataset.average_peptide_length*20;
     } else {
         // Normalise the number of peptides in the dataset to the normalisation factor
         B_L = normalization_factor*dataset.average_peptide_length*20;
@@ -1015,6 +1015,7 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     PyObject* matched_motif_str_obj = PyUnicode_FromString("matched_motif");
     PyObject* matched_p_val_str_obj = PyUnicode_FromString("matched_p_val");
     PyObject* matched_significance_str_obj = PyUnicode_FromString("matched_significance");
+    PyObject* alignment_score_str_obj = PyUnicode_FromString("alignment_score");
     PyObject* empty_str_obj = PyUnicode_FromString("");
     
     // Set the number of iterations
@@ -1084,6 +1085,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
             }
             Py_DECREF(residue_dict);
         }
+
+        Py_DECREF(scores_dict);
         
         set_string_item_in_dict(peptide_dict, similarity_motif_str_obj, motifs_result.similarity_motifs[i]);
         free(motifs_result.similarity_motifs[i]);
@@ -1102,8 +1105,10 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
         set_float_item_in_dict(peptide_dict, matched_p_val_str_obj, motifs_result.matched_p_vals[i]);
         set_float_item_in_dict(peptide_dict, matched_significance_str_obj, motifs_result.matched_significances[i]);
 
+        set_float_item_in_dict(peptide_dict, alignment_score_str_obj, alignment_result.best_alignment_scores[i]);
+
+
         Py_DECREF(peptide_dict);
-        Py_DECREF(scores_dict);
     }
     
     // Cleanup
@@ -1128,6 +1133,7 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     Py_DECREF(matched_motif_str_obj);
     Py_DECREF(matched_p_val_str_obj);
     Py_DECREF(matched_significance_str_obj);
+    Py_DECREF(alignment_score_str_obj);
     Py_DECREF(empty_str_obj);
 
     return result_dict;
