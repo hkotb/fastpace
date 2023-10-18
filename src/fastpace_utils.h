@@ -62,12 +62,18 @@ typedef struct {
     int best_motif_indx;
     double best_motif_p_val;
     double best_motif_significance;
+    int best_motif_num_matches;
+    double best_motif_coverage;
     char** similarity_motifs;
     double* similarity_p_vals;
     double* similarity_significances;
+    int* similarity_num_matches;
+    double* similarity_coverages;
     char** matched_motifs;
     double* matched_p_vals;
     double* matched_significances;
+    int* matched_num_matches;
+    double* matched_coverages;
 } MotifsResult;
 
 // Structure representing the result of aligning a dataset of peptides to a peptide

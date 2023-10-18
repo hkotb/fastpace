@@ -600,16 +600,22 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
     char** similarity_motifs = malloc(sizeof(char*)*dataset.peptides_num);
     double* similarity_p_vals = malloc(sizeof(double)*dataset.peptides_num);
     double* similarity_significances = malloc(sizeof(double)*dataset.peptides_num);
+    int* similarity_num_matches = malloc(sizeof(int)*dataset.peptides_num);
+    double* similarity_coverages = malloc(sizeof(double)*dataset.peptides_num);
     // Matched motif for a peptide is the best similarity motif (from any peptide) that matches this peptide
     char** matched_motifs = malloc(sizeof(char*)*dataset.peptides_num);
     double* matched_p_vals = malloc(sizeof(double)*dataset.peptides_num);
     double* matched_significances = malloc(sizeof(double)*dataset.peptides_num);
+    int* matched_num_matches = malloc(sizeof(int)*dataset.peptides_num);
+    double* matched_coverages = malloc(sizeof(double)*dataset.peptides_num);
     
     // Initialize matched_motifs and matched_p_vals to NULL and 1 respectively
     for (int i = 0; i < dataset.peptides_num; i++) {
         matched_motifs[i] = NULL;
         matched_p_vals[i] = 1;
         matched_significances[i] = 1;
+        matched_num_matches[i] = 0;
+        matched_coverages[i] = 0;
     }
 
     // Variables for tracking the best motif
@@ -617,6 +623,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
     int best_motif_indx = -1;
     double best_motif_p_val = 1;
     double best_motif_significance = 1;
+    int best_motif_num_matches = 0;
+    double best_motif_coverage = 0;
     
     // Calculate a conservative size of the motif space
     double B_L = 0;
@@ -635,6 +643,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         // Start with the worst possible p-value
         double p_val = 1;
         double significance = 1;
+        int num_matches = 0;
+        double coverage = 0;
         // Initialize an array to store the matched peptides flags for the best motif
         int* matched_flag = calloc(dataset.peptides_num, sizeof(int));
         // Get the peptide length and scores
@@ -661,6 +671,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
             similarity_motifs[i] = motif;
             similarity_p_vals[i] = p_val;
             similarity_significances[i] = significance;
+            similarity_num_matches[i] = num_matches;
+            similarity_coverages[i] = coverage;
             continue;
         }
 
@@ -796,6 +808,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
             if (1-survival > 0.000001 && survival < p_val) {
                 p_val = survival;
                 significance = sig;
+                num_matches = num_sequences_with_motif_in_normalization_factor;
+                coverage = (double)num_sequences_with_motif_in_normalization_factor/num_trials;
                 free(motif);
                 motif = malloc((strlen(regex_str) + 1) * sizeof(char));
                 strcpy(motif, regex_str);
@@ -814,6 +828,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         //free(motif); // Do not free the motif here because it is used in the matched_motifs array
         similarity_p_vals[i] = p_val;
         similarity_significances[i] = significance;
+        similarity_num_matches[i] = num_matches;
+        similarity_coverages[i] = coverage;
         
         // Update the matched motif data for the peptides that match the motif and the motif improves their p-value of the previous matched motif
         for (int ii = 0; ii < dataset.peptides_num; ii++) {
@@ -825,6 +841,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
                 strcpy(matched_motifs[ii], motif);
                 matched_p_vals[ii] = p_val;
                 matched_significances[ii] = significance;
+                matched_num_matches[ii] = num_matches;
+                matched_coverages[ii] = coverage;
             }
         }
         free(motif);
@@ -835,6 +853,8 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
             best_motif_indx = i;
             best_motif_p_val = p_val;
             best_motif_significance = significance;
+            best_motif_num_matches = num_matches;
+            best_motif_coverage = coverage;
         }
         
         // Cleanup
@@ -853,12 +873,18 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         .best_motif_indx = best_motif_indx,
         .best_motif_p_val = best_motif_p_val,
         .best_motif_significance = best_motif_significance,
+        .best_motif_num_matches = best_motif_num_matches,
+        .best_motif_coverage = best_motif_coverage,
         .similarity_motifs = similarity_motifs,
         .similarity_p_vals = similarity_p_vals,
         .similarity_significances = similarity_significances,
+        .similarity_num_matches = similarity_num_matches,
+        .similarity_coverages = similarity_coverages,
         .matched_motifs = matched_motifs,
         .matched_p_vals = matched_p_vals,
-        .matched_significances = matched_significances
+        .matched_significances = matched_significances,
+        .matched_num_matches = matched_num_matches,
+        .matched_coverages = matched_coverages
     };
 
     return motifs_result;
@@ -1003,6 +1029,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     PyObject* best_motif_str_obj = PyUnicode_FromString("best_motif");
     PyObject* best_motif_p_val_str_obj = PyUnicode_FromString("best_motif_p_val");
     PyObject* best_motif_significance_str_obj = PyUnicode_FromString("best_motif_significance");
+    PyObject* best_motif_num_matches_str_obj = PyUnicode_FromString("best_motif_num_matches");
+    PyObject* best_motif_coverage_str_obj = PyUnicode_FromString("best_motif_coverage");
     PyObject* alignment_str_obj = PyUnicode_FromString("alignment");
     PyObject* alignment_template_str_obj = PyUnicode_FromString("template");
     PyObject* aligned_sequences_str_obj = PyUnicode_FromString("aligned_sequences");
@@ -1011,10 +1039,14 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     PyObject* similarity_motif_str_obj = PyUnicode_FromString("similarity_motif");
     PyObject* similarity_p_val_str_obj = PyUnicode_FromString("similarity_p_val");
     PyObject* similarity_significance_str_obj = PyUnicode_FromString("similarity_significance");
+    PyObject* similarity_num_matches_str_obj = PyUnicode_FromString("similarity_num_matches");
+    PyObject* similarity_coverage_str_obj = PyUnicode_FromString("similarity_coverage");
     PyObject* similarity_score_str_obj = PyUnicode_FromString("similarity_score");
     PyObject* matched_motif_str_obj = PyUnicode_FromString("matched_motif");
     PyObject* matched_p_val_str_obj = PyUnicode_FromString("matched_p_val");
     PyObject* matched_significance_str_obj = PyUnicode_FromString("matched_significance");
+    PyObject* matched_num_matches_str_obj = PyUnicode_FromString("matched_num_matches");
+    PyObject* matched_coverage_str_obj = PyUnicode_FromString("matched_coverage");
     PyObject* alignment_score_str_obj = PyUnicode_FromString("alignment_score");
     PyObject* empty_str_obj = PyUnicode_FromString("");
     
@@ -1032,6 +1064,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     }
     set_float_item_in_dict(consensus_dict, best_motif_p_val_str_obj, motifs_result.best_motif_p_val);
     set_float_item_in_dict(consensus_dict, best_motif_significance_str_obj, motifs_result.best_motif_significance);
+    set_int_item_in_dict(consensus_dict, best_motif_num_matches_str_obj, motifs_result.best_motif_num_matches);
+    set_float_item_in_dict(consensus_dict, best_motif_coverage_str_obj, motifs_result.best_motif_coverage);
 
     // Set the produced alignment
     PyObject* alignment_dict = PyDict_New();
@@ -1092,6 +1126,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
         free(motifs_result.similarity_motifs[i]);
         set_float_item_in_dict(peptide_dict, similarity_p_val_str_obj, motifs_result.similarity_p_vals[i]);
         set_float_item_in_dict(peptide_dict, similarity_significance_str_obj, motifs_result.similarity_significances[i]);
+        set_int_item_in_dict(peptide_dict, similarity_num_matches_str_obj, motifs_result.similarity_num_matches[i]);
+        set_float_item_in_dict(peptide_dict, similarity_coverage_str_obj, motifs_result.similarity_coverages[i]);
         
         double peptide_similarity_score = get_peptide_similarity_score(dataset.peptides_strs[i], peptide_scores, peptide_length);
         set_float_item_in_dict(peptide_dict, similarity_score_str_obj, peptide_similarity_score);
@@ -1104,6 +1140,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
         }
         set_float_item_in_dict(peptide_dict, matched_p_val_str_obj, motifs_result.matched_p_vals[i]);
         set_float_item_in_dict(peptide_dict, matched_significance_str_obj, motifs_result.matched_significances[i]);
+        set_int_item_in_dict(peptide_dict, matched_num_matches_str_obj, motifs_result.matched_num_matches[i]);
+        set_float_item_in_dict(peptide_dict, matched_coverage_str_obj, motifs_result.matched_coverages[i]);
 
         set_float_item_in_dict(peptide_dict, alignment_score_str_obj, alignment_result.best_alignment_scores[i]);
 
@@ -1122,6 +1160,8 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     Py_DECREF(best_motif_str_obj);
     Py_DECREF(best_motif_p_val_str_obj);
     Py_DECREF(best_motif_significance_str_obj);
+    Py_DECREF(best_motif_num_matches_str_obj);
+    Py_DECREF(best_motif_coverage_str_obj);
     Py_DECREF(alignment_str_obj);
     Py_DECREF(alignment_template_str_obj);
     Py_DECREF(aligned_sequences_str_obj);
@@ -1129,10 +1169,14 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
     Py_DECREF(similarity_motif_str_obj);
     Py_DECREF(similarity_p_val_str_obj);
     Py_DECREF(similarity_significance_str_obj);
+    Py_DECREF(similarity_num_matches_str_obj);
+    Py_DECREF(similarity_coverage_str_obj);
     Py_DECREF(similarity_score_str_obj);
     Py_DECREF(matched_motif_str_obj);
     Py_DECREF(matched_p_val_str_obj);
     Py_DECREF(matched_significance_str_obj);
+    Py_DECREF(matched_num_matches_str_obj);
+    Py_DECREF(matched_coverage_str_obj);
     Py_DECREF(alignment_score_str_obj);
     Py_DECREF(empty_str_obj);
 
@@ -1159,9 +1203,13 @@ void free_motifs_result(MotifsResult motifs_result) {
     free(motifs_result.similarity_motifs);
     free(motifs_result.similarity_p_vals);
     free(motifs_result.similarity_significances);
+    free(motifs_result.similarity_num_matches);
+    free(motifs_result.similarity_coverages);
     free(motifs_result.matched_motifs);
     free(motifs_result.matched_p_vals);
     free(motifs_result.matched_significances);
+    free(motifs_result.matched_num_matches);
+    free(motifs_result.matched_coverages);
 }
 
 void free_alignment_result(AlignmentResult alignment_result) {
