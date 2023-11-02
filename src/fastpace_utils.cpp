@@ -1,4 +1,4 @@
-#include "fastpace_utils.h"
+#include "fastpace_utils.hpp"
 #include <regex.h>
 #include "scipy_interface.hpp"
 
@@ -127,9 +127,9 @@ int get_letter_index(char C) {
 Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
     Py_ssize_t peptides_num = PyList_Size(peptides_list);
     
-    const char** peptides_strs = malloc(sizeof(char*)*peptides_num);
-    int* peptides_lengths = malloc(sizeof(int)*peptides_num);
-    double* peptides_weights = malloc(sizeof(double)*peptides_num);
+    const char** peptides_strs = (const char **) malloc(sizeof(char*)*peptides_num);
+    int* peptides_lengths = (int *) malloc(sizeof(int)*peptides_num);
+    double* peptides_weights = (double *) malloc(sizeof(double)*peptides_num);
     double total_weights = 0;
     int maximum_score = 0;
     int error = 0;
@@ -218,7 +218,7 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
         .peptides_weights = peptides_weights,
         .total_weights = total_weights,
         .maximum_score = maximum_score,
-        .average_peptide_length = average_peptide_length/peptides_num
+        .average_peptide_length = (int) (average_peptide_length/peptides_num)
     };
 
     return dataset;
@@ -240,10 +240,10 @@ MatchResult match_sequences(const char* sA, const char* sB, int n, int m, double
     
     // Allocate memory for the result
     // sA_scores and sB_scores are the scores of the best match score of each letter in sA and sB respectively. They are not necessarily and they can be replaced by the best match score of the whole sequence and matched_chars arrays. However, they were used to keep track of the best match score of each letter in the sequence when calculating the best match score per letter (legacy).
-    double *sA_scores = malloc(sizeof(double) * n);
-    double *sB_scores = malloc(sizeof(double) * m);
-    char *sA_matched_chars = malloc(sizeof(char) * n);
-    char *sB_matched_chars = malloc(sizeof(char) * m);
+    double *sA_scores = (double *) malloc(sizeof(double) * n);
+    double *sB_scores = (double *) malloc(sizeof(double) * m);
+    char *sA_matched_chars = (char *) malloc(sizeof(char) * n);
+    char *sB_matched_chars = (char *) malloc(sizeof(char) * m);
     
     // Initialize the result arrays
     memset(sA_scores, 0, sizeof(*sA_scores) * n);
@@ -334,7 +334,7 @@ void free_match_result(MatchResult* match) {
 }
 
 double* calculate_similarity_pvals(Dataset dataset) {
-    double* pvals = calloc(dataset.maximum_score + 1, sizeof(double));
+    double* pvals = (double *) calloc(dataset.maximum_score + 1, sizeof(double));
 
     for (int i = 0; i < dataset.peptides_num; i++) {
         const char* peptide1_str = dataset.peptides_strs[i];
@@ -371,11 +371,11 @@ double* calculate_similarity_pvals(Dataset dataset) {
 }
 
 double*** calculate_similarity_scores(Dataset dataset, double* pvals, double*** prev_peptides_scores, int iteration) {
-    double*** peptides_scores = malloc(sizeof(double**) * dataset.peptides_num);
+    double*** peptides_scores = (double ***) malloc(sizeof(double**) * dataset.peptides_num);
     for (int i = 0; i < dataset.peptides_num; i++) {
-        peptides_scores[i] = malloc(sizeof(double*) * 25); // 25 is the number of allowed letters
+        peptides_scores[i] = (double **) malloc(sizeof(double*) * 25); // 25 is the number of allowed letters
         for (int l = 0; l < 25; ++l) {
-            peptides_scores[i][l] = malloc(sizeof(double) * dataset.peptides_lengths[i]);
+            peptides_scores[i][l] = (double *) malloc(sizeof(double) * dataset.peptides_lengths[i]);
             for (int j = 0; j < dataset.peptides_lengths[i]; j++) {
                 peptides_scores[i][l][j] = 0;
             }
@@ -403,13 +403,13 @@ double*** calculate_similarity_scores(Dataset dataset, double* pvals, double*** 
                     void* res_score;
                     int positive_score_flag = 0;
                     if (iteration == 0) {
-                        res_score = malloc(sizeof(int));
+                        res_score = (int *) malloc(sizeof(int));
                         *(int*)res_score = match.sA_scores[k];
                         if (*(int*)res_score > 0) {
                             positive_score_flag = 1;
                         }
                     } else {
-                        res_score = malloc(sizeof(double));
+                        res_score = (double *) malloc(sizeof(double));
                         *(double*)res_score = match.sA_scores[k];
                         if (*(double*)res_score > 0) {
                             positive_score_flag = 1;
@@ -433,13 +433,13 @@ double*** calculate_similarity_scores(Dataset dataset, double* pvals, double*** 
                     void* res_score;
                     int positive_score_flag = 0;
                     if (iteration == 0) {
-                        res_score = malloc(sizeof(int));
+                        res_score = (int *) malloc(sizeof(int));
                         *(int*)res_score = match.sB_scores[k];
                         if (*(int*)res_score > 0) {
                             positive_score_flag = 1;
                         }
                     } else {
-                        res_score = malloc(sizeof(double));
+                        res_score = (double *) malloc(sizeof(double));
                         *(double*)res_score = match.sB_scores[k];
                         if (*(double*)res_score > 0) {
                             positive_score_flag = 1;
@@ -551,9 +551,9 @@ IterativeSimilarityScoresResult calculate_iterative_similarity_scores(Dataset da
 
 AAFreq calculate_aa_freq(Dataset dataset) {
     // Calculate amino acid frequencies
-    double* aa_freq = calloc(25, sizeof(double));
+    double* aa_freq = (double *) calloc(25, sizeof(double));
     int aa_total = 0;
-    double* wt_aa_freq = calloc(25, sizeof(double));
+    double* wt_aa_freq = (double *) calloc(25, sizeof(double));
     double wt_aa_total = 0;
     for (int i = 0; i < dataset.peptides_num; i++) {
         const char* sA = dataset.peptides_strs[i];
@@ -597,17 +597,17 @@ int compare_scores(const void* a, const void* b) {
 MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores, double* aa_freq, double* wt_aa_freq, int normalization_factor) {
     // Allocate arrays to store results
     // Similarity motif for a peptide is extracted from its similarity matrix
-    char** similarity_motifs = malloc(sizeof(char*)*dataset.peptides_num);
-    double* similarity_p_vals = malloc(sizeof(double)*dataset.peptides_num);
-    double* similarity_significances = malloc(sizeof(double)*dataset.peptides_num);
-    int* similarity_num_matches = malloc(sizeof(int)*dataset.peptides_num);
-    double* similarity_coverages = malloc(sizeof(double)*dataset.peptides_num);
+    char** similarity_motifs = (char **) malloc(sizeof(char*)*dataset.peptides_num);
+    double* similarity_p_vals = (double *) malloc(sizeof(double)*dataset.peptides_num);
+    double* similarity_significances = (double *) malloc(sizeof(double)*dataset.peptides_num);
+    int* similarity_num_matches = (int *) malloc(sizeof(int)*dataset.peptides_num);
+    double* similarity_coverages = (double *) malloc(sizeof(double)*dataset.peptides_num);
     // Matched motif for a peptide is the best similarity motif (from any peptide) that matches this peptide
-    char** matched_motifs = malloc(sizeof(char*)*dataset.peptides_num);
-    double* matched_p_vals = malloc(sizeof(double)*dataset.peptides_num);
-    double* matched_significances = malloc(sizeof(double)*dataset.peptides_num);
-    int* matched_num_matches = malloc(sizeof(int)*dataset.peptides_num);
-    double* matched_coverages = malloc(sizeof(double)*dataset.peptides_num);
+    char** matched_motifs = (char **) malloc(sizeof(char*)*dataset.peptides_num);
+    double* matched_p_vals = (double *) malloc(sizeof(double)*dataset.peptides_num);
+    double* matched_significances = (double *) malloc(sizeof(double)*dataset.peptides_num);
+    int* matched_num_matches = (int *) malloc(sizeof(int)*dataset.peptides_num);
+    double* matched_coverages = (double *) malloc(sizeof(double)*dataset.peptides_num);
     
     // Initialize matched_motifs and matched_p_vals to NULL and 1 respectively
     for (int i = 0; i < dataset.peptides_num; i++) {
@@ -638,7 +638,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
     // Loop over all peptides
     for (int i = 0; i < dataset.peptides_num; i++) {
         // Initialize a string to store the regex motif
-        char* motif = malloc(sizeof(char));
+        char* motif = (char *) malloc(sizeof(char));
         motif[0] = '\0';
         // Start with the worst possible p-value
         double p_val = 1;
@@ -646,7 +646,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         int num_matches = 0;
         double coverage = 0;
         // Initialize an array to store the matched peptides flags for the best motif
-        int* matched_flag = calloc(dataset.peptides_num, sizeof(int));
+        int* matched_flag = (int *) calloc(dataset.peptides_num, sizeof(int));
         // Get the peptide length and scores
         double** peptide_scores = peptides_scores[i];
         int peptide_length = dataset.peptides_lengths[i];
@@ -680,14 +680,14 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         qsort(aa_pos_scr, num_entries, sizeof(AAPosScr), compare_scores);
         
         // Initialize a regex table matching the peptide matrix size to zeros
-        int** regex_table = malloc(sizeof(int*)*25);
+        int** regex_table = (int **) malloc(sizeof(int*)*25);
         for (int l = 0; l < 25; ++l) {
-            regex_table[l] = calloc(peptide_length, sizeof(int));
+            regex_table[l] = (int *) calloc(peptide_length, sizeof(int));
         }
         // Update the regex table with the first entry in aa_pos_scr to start the motif
         regex_table[aa_pos_scr[0].aa][aa_pos_scr[0].pos] = 1;
         // Initialize an array to store the number of characters in each position in the regex table
-        int* pos_chars_counts = calloc(peptide_length, sizeof(int));
+        int* pos_chars_counts = (int *) calloc(peptide_length, sizeof(int));
         // Update the number of characters in the first entry's position in the regex table to 1
         pos_chars_counts[aa_pos_scr[0].pos]++;
         // Loop over all the possible number of motif components starting from 2 to the number of entries in aa_pos_scr (the maximum possible number of motif components)
@@ -768,7 +768,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
                 printf("Failed to compile regex %s\n", regex_str);
                 continue;
             }
-            int* matched_flag_temp = malloc(sizeof(int)*dataset.peptides_num);
+            int* matched_flag_temp = (int *) malloc(sizeof(int)*dataset.peptides_num);
             for (int ii = 0; ii < dataset.peptides_num; ii++) {
                 ret = regexec(&rgx, dataset.peptides_strs[ii], 0, NULL, 0);
                 if (ret == 0) {
@@ -811,7 +811,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
                 num_matches = num_sequences_with_motif_in_normalization_factor;
                 coverage = (double)num_sequences_with_motif_in_normalization_factor/num_trials;
                 free(motif);
-                motif = malloc((strlen(regex_str) + 1) * sizeof(char));
+                motif = (char *) malloc((strlen(regex_str) + 1) * sizeof(char));
                 strcpy(motif, regex_str);
                 free(matched_flag);
                 matched_flag = matched_flag_temp;
@@ -823,7 +823,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
         }
         
         // Store the motif and the p-value of the motif in the results arrays
-        similarity_motifs[i] = malloc((strlen(motif) + 1) * sizeof(char));
+        similarity_motifs[i] = (char *) malloc((strlen(motif) + 1) * sizeof(char));
         strcpy(similarity_motifs[i], motif);
         //free(motif); // Do not free the motif here because it is used in the matched_motifs array
         similarity_p_vals[i] = p_val;
@@ -837,7 +837,7 @@ MotifsResult extract_putative_motifs(Dataset dataset, double*** peptides_scores,
                 if (matched_motifs[ii] != NULL) {
                     free(matched_motifs[ii]);
                 }
-                matched_motifs[ii] = malloc((strlen(motif) + 1) * sizeof(char));
+                matched_motifs[ii] = (char *) malloc((strlen(motif) + 1) * sizeof(char));
                 strcpy(matched_motifs[ii], motif);
                 matched_p_vals[ii] = p_val;
                 matched_significances[ii] = significance;
@@ -915,8 +915,8 @@ AlignmentResult align_dataset_to_peptide(Dataset dataset, double*** peptides_sco
 
     int min_best_align_start = INT_MAX;
     int max_best_align_end = INT_MIN;
-    int* best_alignment_starts = malloc(sizeof(int)*dataset.peptides_num);
-    double* best_alignment_scores = malloc(sizeof(double)*dataset.peptides_num);
+    int* best_alignment_starts = (int *) malloc(sizeof(int)*dataset.peptides_num);
+    double* best_alignment_scores = (double *) malloc(sizeof(double)*dataset.peptides_num);
 
     const char* peptide1_str = dataset.peptides_strs[peptide_indx];
     int peptide1_len = dataset.peptides_lengths[peptide_indx];
@@ -1143,7 +1143,11 @@ PyObject* create_result_dict(Dataset dataset, IterativeSimilarityScoresResult si
         set_int_item_in_dict(peptide_dict, matched_num_matches_str_obj, motifs_result.matched_num_matches[i]);
         set_float_item_in_dict(peptide_dict, matched_coverage_str_obj, motifs_result.matched_coverages[i]);
 
-        set_float_item_in_dict(peptide_dict, alignment_score_str_obj, alignment_result.best_alignment_scores[i]);
+        if (alignment_result.peptide_indx == -1) {
+            set_float_item_in_dict(peptide_dict, alignment_score_str_obj, 0);
+        } else {
+            set_float_item_in_dict(peptide_dict, alignment_score_str_obj, alignment_result.best_alignment_scores[i]);
+        }
 
 
         Py_DECREF(peptide_dict);

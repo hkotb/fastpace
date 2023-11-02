@@ -1,4 +1,4 @@
-#include "fastpace_utils.h"
+#include "fastpace_utils.hpp"
 
 static int validate_peptides_list(PyObject* peptides_list) {
     // Check if peptides_list is empty or less than 2 peptides
@@ -90,7 +90,7 @@ static PyObject* run_motif_discovery(PyObject* self, PyObject* args, PyObject* k
     int normalization_factor = -1;
     
     // Check if the function is called with the correct arguments
-    static char *kwlist[] = {"peptides", "weights", "refine", "normalization_factor", NULL};
+    static char *kwlist[] = {(char*) "peptides", (char*) "weights", (char*) "refine", (char*) "normalization_factor", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "O!|Opi", kwlist, &PyList_Type, &peptides_list, &weights_list, &refine, &normalization_factor)) {
         PyErr_SetString(PyExc_Exception, "This function takes a list of peptides, and optionally a list of weights, refine flag, and a normalization factor");
         return NULL;
@@ -121,7 +121,7 @@ static PyObject* rerun_motif_discovery(PyObject* self, PyObject* args, PyObject*
     PyObject* weights_list = NULL;
     
     // Check if the function is called with the correct arguments
-    static char *kwlist[] = {"original_peptides", "masked_peptides", "weights", NULL};
+    static char *kwlist[] = {(char*) "original_peptides", (char*) "masked_peptides", (char*) "weights", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "O!O!|O", kwlist, &PyList_Type, &original_peptides_list, &PyList_Type, &masked_peptides_list, &weights_list)) {
         PyErr_SetString(PyExc_Exception, "This function takes a list of the original peptides, a list of the masked peptides, and optionally a list of weights");
         return NULL;

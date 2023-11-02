@@ -30,9 +30,9 @@ typedef struct {
 typedef struct {
     int found_match;
     double match_score;
+    int alignment_start;
     double *sA_scores;
     double *sB_scores;
-    int alignment_start;
     char *sA_matched_chars;
     char *sB_matched_chars;
 } MatchResult;
