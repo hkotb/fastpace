@@ -25,7 +25,7 @@ Click the "Submit" button and wait for the queue system to process your job.
 ### Results
 After the job is completed, you will receive detailed information about the best-extracted motif and alignment, including:
 
-- Motif Section:
+- Motif Section: This section displays the following:
   
     <table align="center">
     <thead>
