@@ -25,18 +25,18 @@ After the job is completed, you will receive detailed information about the best
 
 - Motif Section:
   
-<table align="center">
-<thead>
-<tr>
-<th align="center"><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hkotb/fastpace/master/img/motif.png"><img align="center" src="https://raw.githubusercontent.com/hkotb/fastpace/master/img/motif.png" width="300" style="max-width: 100%;"></a></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center"><strong>Figure 3</strong> The Motif Section Interface within the FaSTPACE Web Server.</td>
-</tr>
-</tbody>
-</table>
+    <table align="center">
+    <thead>
+    <tr>
+    <th align="center"><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hkotb/fastpace/master/img/motif.png"><img align="center" src="https://raw.githubusercontent.com/hkotb/fastpace/master/img/motif.png"></a></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td align="center"><strong>Figure 3</strong> The Motif Section Interface within the FaSTPACE Web Server.</td>
+    </tr>
+    </tbody>
+    </table>
 
     - Sequence Logo: Displaying the peptide with the highest residue score in its similarity matrix.
     - Regular Expression: The best-p-value motif extracted from a peptide's similarity matrix. The allowable characters for building the regular expression are listed below:
@@ -66,18 +66,18 @@ After the job is completed, you will receive detailed information about the best
         - Coverage.
 - Alignment Section: This section displays a table with the following columns:
   
-<table align="center">
-<thead>
-<tr>
-<th align="center"><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hkotb/fastpace/master/img/alignment.png"><img align="center" src="https://raw.githubusercontent.com/hkotb/fastpace/master/img/alignment.png" width="300" style="max-width: 100%;"></a></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center"><strong>Figure 4</strong> The Alignment Section Interface within the FaSTPACE Web Server.</td>
-</tr>
-</tbody>
-</table>
+    <table align="center">
+    <thead>
+    <tr>
+    <th align="center"><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hkotb/fastpace/master/img/alignment.png"><img align="center" src="https://raw.githubusercontent.com/hkotb/fastpace/master/img/alignment.png"></a></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td align="center"><strong>Figure 4</strong> The Alignment Section Interface within the FaSTPACE Web Server.</td>
+    </tr>
+    </tbody>
+    </table>
 
     - Aligned peptide.
     - Score.
