@@ -46,6 +46,7 @@ After the job is completed, you will receive detailed information about the best
     </tr>
     </tbody>
     </table>
+    
     - Best Extracted Motif Scores: 
         - Significance.
         - p-value.
