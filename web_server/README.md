@@ -14,6 +14,7 @@ The core of the algorithm produces a refined global similarity matrix from which
 | ![input](https://raw.githubusercontent.com/hkotb/fastpace/master/img/input.png) |
 |:--:|
 | **Figure 1** The Input Peptides Interface on the FaSTPACE Web Server. |
+
 Load peptides or click on one of the example buttons to load a test set. Please note that input peptides must not contain non-standard amino acids.
 
 ### Submit
@@ -23,9 +24,11 @@ Click the "Submit" button and wait for the queue system to process your job.
 After the job is completed, you will receive detailed information about the best-extracted motif and alignment, including:
 
 - Motif Section:
+  
 | ![motif](https://raw.githubusercontent.com/hkotb/fastpace/master/img/motif.png) |
 |:--:|
 | **Figure 2** The Motif Section Interface within the FaSTPACE Web Server. |
+
     - Sequence Logo: Displaying the peptide with the highest residue score in its similarity matrix.
     - Regular Expression: The best-p-value motif extracted from a peptide's similarity matrix. The allowable characters for building the regular expression are listed below:
     <table align="center">
@@ -53,9 +56,11 @@ After the job is completed, you will receive detailed information about the best
         - Number of mateched instances.
         - Coverage.
 - Alignment Section: This section displays a table with the following columns:
+  
 | ![alignment](https://raw.githubusercontent.com/hkotb/fastpace/master/img/alignment.png) |
 |:--:|
 | **Figure 2** The Alignment Section Interface within the FaSTPACE Web Server. |
+
     - Aligned peptide.
     - Score.
     - Score.
