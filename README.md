@@ -183,7 +183,7 @@ A script is designed to process fasta files, perform motif discovery, and genera
 ```python
 pip install fastpace pandas matplotlib seaborn logomaker
 ```
-- Clone the repository:
+- Clone the repository (to download the script):
 ```
 git clone https://github.com/hkotb/fastpace.git
 cd fastpace/test/
@@ -209,12 +209,12 @@ python fastpace_cmd.py --input_file input.fasta --output_file output.fasta [--dr
 
 ## Development
 
-If you clone the repository, we recommend that you install it as a development package with:
+We recommend that you clone the repository and install it as a development package with:
 ```
 python setup.py develop
 ```
 
-To generate distribution archive from your machine:
+To generate a distribution archive from your machine:
 ```
 python -m build
 ```
