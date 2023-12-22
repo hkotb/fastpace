@@ -363,7 +363,8 @@ double* calculate_similarity_pvals(Dataset dataset) {
 
     if (pval > 0) {
         for (int s = dataset.maximum_score; s >= 0; s--) {
-            pvals[s] = -1 * log(pvals[s] / pvals[0]);
+            // add a small number to avoid log(1) = 0, which will cause ignoring the score when calculating the similarity score
+            pvals[s] = -1 * log(pvals[s] / (pvals[0]+0.00000000001));
         }
     }
 
