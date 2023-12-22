@@ -39,7 +39,7 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
 
 **Returns:**
 - Dictionary: The dictionary object returned contains information about the discovered motif, alignment results, and similarity scores for each peptide. Below is a breakdown of the key elements in the output:
-
+```
     .
     ├── Refinement Information:
     │   └── refinement_iterations: The number of refinement iterations performed.
@@ -67,7 +67,7 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
         ├──  matched_num_matches: Number of matches found for the matched motif.
         ├──  matched_coverage: Coverage percentage of the matched motif.
         └──  alignment_score: Cumulative alignment score for the peptide.
-
+```
 **Example:**
 ```python
 peptides = ['ABC', 'DEF', 'GHI']
