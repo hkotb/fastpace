@@ -38,7 +38,34 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
 - `normalization_factor` (float, optional, default=-1): The dataset size is corrected to be equal to this number in order to compare different datasets with different sizes. It must be equal to or greater than 1. By default, -1 means to use the dataset size with no normalization.
 
 **Returns:**
-- List: List of putative motifs extracted from the aligned peptides.
+- Dictionary: The dictionary object returned contains information about the discovered motif, alignment results, and similarity scores for each peptide. Below is a breakdown of the key elements in the output:
+    .
+    ├── Refinement Information:
+    │   └── refinement_iterations: The number of refinement iterations performed.
+    ├── Consensus Motif Information:
+    │   ├── best_motif: The best consensus motif represented as a regular expression.
+    │   ├── best_motif_p_val: P-value associated with the best consensus motif.
+    │   ├── best_motif_significance: Significance level of the best consensus motif.
+    │   ├── best_motif_num_matches: Number of matches found for the best consensus motif.
+    │   └── best_motif_coverage: Coverage percentage of the best consensus motif.
+    ├── Alignment Information: 
+    │   ├── template: The template sequence used for alignment.
+    │   └── aligned_sequences: A dictionary mapping each input sequence to its aligned counterpart.
+    └── Peptide-specific Information:
+        For each peptide in the dataset, the following information is provided:
+        ├──  similarity_matrix: A matrix of similarity scores between the peptide and the consensus motif.
+        ├──  similarity_motif: The motif represented as a regular expression for similarity.
+        ├──  similarity_p_val: P-value associated with the similarity motif.
+        ├──  similarity_significance: Significance level of the similarity motif.
+        ├──  similarity_num_matches: Number of matches found for the similarity motif.
+        ├──  similarity_coverage: Coverage percentage of the similarity motif.
+        ├──  similarity_score: Cumulative similarity score for the peptide.
+        ├──  matched_motif: The motif that matches the peptide best.
+        ├──  matched_p_val: P-value associated with the matched motif.
+        ├──  matched_significance: Significance level of the matched motif.
+        ├──  matched_num_matches: Number of matches found for the matched motif.
+        ├──  matched_coverage: Coverage percentage of the matched motif.
+        └──  alignment_score: Cumulative alignment score for the peptide.
 
 **Example:**
 ```python
