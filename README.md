@@ -21,6 +21,53 @@ Install the pachage:
 ```
 pip install fastpace
 ```
+
+## Functions
+
+Import functions:
+```
+from fastpace import run_motif_discovery, rerun_motif_discovery
+```
+
+### `run_motif_discovery(peptides, weights=None, refine=1, normalization_factor=-1)`
+
+Calculate per residue similarity scores, align peptides, and extract putative motifs.
+
+**Parameters:**
+- `peptides` (list): List of strings of standard sequence letters representing peptides in the dataset. It should contain 2 or more peptides. No sequence with less than 2 letters or longer than 32 characters is allowed.
+- `weights` (list, optional, default=None): List of positive numbers representing weights. The number of weights must be equal to the number of peptides. If not provided, each peptide is assigned a weight of 1.
+- `refine` (int, optional, default=1): Flag with 0 or 1. 0 means return the results after the initiation step. 1 means doing the refinement step.
+- `normalization_factor` (float, optional, default=-1): The dataset size is corrected to be equal to this number in order to compare different datasets with different sizes. It must be equal to or greater than 1. By default, -1 means to use the dataset size with no normalization.
+
+**Returns:**
+- List: List of putative motifs extracted from the aligned peptides.
+
+**Example:**
+```python
+peptides = ['ABC', 'DEF', 'GHI']
+weights = [1, 2, 1]
+motifs = run_motif_discovery(peptides, weights, refine=1, normalization_factor=100)
+```
+
+### `rerun_motif_discovery(original_peptides, masked_peptides, weights=None)`
+
+Calculate per residue similarity scores and extract putative motifs after masking previously extracted motifs.
+
+**Parameters:**
+- `original_peptides` (list): List of the original peptides before masking.
+- `masked_peptides` (list): List of the masked peptides. The number of masked peptides must be equal to the number of original peptides.
+- `weights` (list, optional, default=None): List of positive weights.
+
+**Returns:**
+- List: List of putative motifs extracted from the aligned peptides.
+
+**Example:**
+```python
+peptides = ['ABC', 'DEF', 'GHI']
+weights = [1, 2, 1]
+motifs = run_motif_discovery(peptides, weights, refine=1, normalization_factor=100)
+```
+
 ##### examples
 Coming soon
 
