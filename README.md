@@ -39,6 +39,7 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
 
 **Returns:**
 - Dictionary: The dictionary object returned contains information about the discovered motif, alignment results, and similarity scores for each peptide. Below is a breakdown of the key elements in the output:
+
     .
     ├── Refinement Information:
     │   └── refinement_iterations: The number of refinement iterations performed.
