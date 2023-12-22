@@ -54,25 +54,60 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
     │   └── aligned_sequences: A dictionary mapping each input sequence to its aligned counterpart.
     └── Peptide-specific Information:
         For each peptide in the dataset, the following information is provided:
-        ├──  similarity_matrix: A matrix of similarity scores between the peptide and the consensus motif.
-        ├──  similarity_motif: The motif represented as a regular expression for similarity.
+        ├──  similarity_matrix: A matrix of peptide's global similarity scores.
+        ├──  similarity_motif: The motif represented as a regular expression extracted from the peptide's global similarity matrix.
         ├──  similarity_p_val: P-value associated with the similarity motif.
         ├──  similarity_significance: Significance level of the similarity motif.
         ├──  similarity_num_matches: Number of matches found for the similarity motif.
         ├──  similarity_coverage: Coverage percentage of the similarity motif.
         ├──  similarity_score: Cumulative similarity score for the peptide.
-        ├──  matched_motif: The motif that matches the peptide best.
+        ├──  matched_motif: The motif with the best p-value that matches the peptide.
         ├──  matched_p_val: P-value associated with the matched motif.
         ├──  matched_significance: Significance level of the matched motif.
         ├──  matched_num_matches: Number of matches found for the matched motif.
         ├──  matched_coverage: Coverage percentage of the matched motif.
-        └──  alignment_score: Cumulative alignment score for the peptide.
+        └──  alignment_score: Alignment score for the peptide on the template sequence.
 ```
 **Example:**
 ```python
-peptides = ['ABC', 'DEF', 'GHI']
-weights = [1, 2, 1]
-motifs = run_motif_discovery(peptides, weights, refine=1, normalization_factor=100)
+peptides = ['TSPDGGTTFEHLWSSL', 'SPEVFQHIWDFLEQPI', 'CPVDPFEAQWAALENK', 'EPPLSQETFSDLWKLL', 'APELDPFEAQWAALEG']
+run_motif_discovery(peptides, refine=0)
+```
+
+**Output:**
+```
+{
+  "refinement_iterations": 0,
+  "consensus": {
+    "best_motif": ".*F...W..L.*",
+    "best_motif_p_val": 4.030701364259203e-12,
+    "best_motif_significance": 6.449063505442609e-09,
+    "best_motif_num_matches": 5,
+    "best_motif_coverage": 1.0
+  },
+  "alignment": {
+    "template": "TSPDGGTTFEHLWSSL",
+    "aligned_sequences": {
+      "TSPDGGTTFEHLWSSL": "TSPDGGTTFEHLWSSL----",
+      "SPEVFQHIWDFLEQPI": "----SPEVFQHIWDFLEQPI",
+      "CPVDPFEAQWAALENK": "---CPVDPFEAQWAALENK-",
+      "EPPLSQETFSDLWKLL": "EPPLSQETFSDLWKLL----",
+      "APELDPFEAQWAALEG": "--APELDPFEAQWAALEG--"
+    }
+  },
+  "peptides": {
+    "TSPDGGTTFEHLWSSL": {
+      "similarity_matrix": {
+        // ...
+      },
+      // ...
+    },
+    "SPEVFQHIWDFLEQPI": {
+      // ...
+    },
+    // ...
+  }
+}
 ```
 
 ### `rerun_motif_discovery(original_peptides, masked_peptides, weights=None)`
@@ -81,17 +116,61 @@ Calculate per residue similarity scores and extract putative motifs after maskin
 
 **Parameters:**
 - `original_peptides` (list): List of the original peptides before masking.
-- `masked_peptides` (list): List of the masked peptides. The number of masked peptides must be equal to the number of original peptides.
+- `masked_peptides` (list): List of the masked peptides. The masked positions should be substituted with the character `X`. The number of masked peptides must be equal to the number of original peptides.
 - `weights` (list, optional, default=None): List of positive weights.
 
 **Returns:**
-- List: List of putative motifs extracted from the aligned peptides.
+- Dictionary: The dictionary object returned contains information about the discovered motif, alignment results, and similarity scores for each peptide. The output has the same format as the previous function.
 
 **Example:**
 ```python
-peptides = ['ABC', 'DEF', 'GHI']
-weights = [1, 2, 1]
-motifs = run_motif_discovery(peptides, weights, refine=1, normalization_factor=100)
+peptides = ['TSPDGGTTFEHLWSSL', 'SPEVFQHIWDFLEQPI', 'CPVDPFEAQWAALENK', 'EPPLSQETFSDLWKLL', 'APELDPFEAQWAALEG']
+masked_peptides = ['TSPDGGTTXXXXXSSL', 'SPEVXXXXXDFLEQPI', 'CPVDPXXXXXAALENK', 'EPPLSQETXXXXXKLL', 'APELDPXXXXXAALEG']
+rerun_motif_discovery(peptides, masked_peptides)
+```
+
+**Output:**
+```
+{
+  "refinement_iterations": 9,
+  "consensus": {
+    "best_motif": ".*LE.*",
+    "best_motif_p_val": 0.06621679958183584,
+    "best_motif_significance": 1.0,
+    "best_motif_num_matches": 3,
+    "best_motif_coverage": 0.6
+  },
+  "alignment": {
+    "template": "CPVDPXXXXXAALENK",
+    "aligned_sequences": {
+      "TSPDGGTTXXXXXSSL": "-TSPDGGTTXXXXXSSL-",
+      "SPEVXXXXXDFLEQPI": "--SPEVXXXXXDFLEQPI",
+      "CPVDPXXXXXAALENK": "-CPVDPXXXXXAALENK-",
+      "EPPLSQETXXXXXKLL": "-EPPLSQETXXXXXKLL-",
+      "APELDPXXXXXAALEG": "APELDPXXXXXAALEG--"
+    }
+  },
+  "peptides": {
+    "TSPDGGTTXXXXXSSL": {
+      "similarity_matrix": {
+        // ...
+      },
+      // ...
+    },
+    "SPEVXXXXXDFLEQPI": {
+      // ...
+    },
+    "CPVDPXXXXXAALENK": {
+      // ...
+    },
+    "EPPLSQETXXXXXKLL": {
+      // ...
+    },
+    "APELDPXXXXXAALEG": {
+      // ...
+    }
+  }
+}
 ```
 
 ## Development
