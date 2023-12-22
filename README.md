@@ -22,8 +22,6 @@ Install the pachage:
 pip install fastpace
 ```
 
-## Functions
-
 Import functions:
 ```
 from fastpace import run_motif_discovery, rerun_motif_discovery
@@ -67,9 +65,6 @@ peptides = ['ABC', 'DEF', 'GHI']
 weights = [1, 2, 1]
 motifs = run_motif_discovery(peptides, weights, refine=1, normalization_factor=100)
 ```
-
-##### examples
-Coming soon
 
 ## Development
 
