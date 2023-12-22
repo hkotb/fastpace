@@ -17,17 +17,17 @@ The core of the algorithm produces a refined global similarity matrix from which
 
 ## Usage
 
-Install the pachage:
+### Install the package:
 ```
 pip install fastpace
 ```
 
-Import functions:
+### Import functions:
 ```
 from fastpace import run_motif_discovery, rerun_motif_discovery
 ```
 
-### `run_motif_discovery(peptides, weights=None, refine=1, normalization_factor=-1)`
+#### `run_motif_discovery(peptides, weights=None, refine=1, normalization_factor=-1)`
 
 Calculate per residue similarity scores, align peptides, and extract putative motifs.
 
@@ -110,7 +110,7 @@ run_motif_discovery(peptides, refine=0)
 }
 ```
 
-### `rerun_motif_discovery(original_peptides, masked_peptides, weights=None)`
+#### `rerun_motif_discovery(original_peptides, masked_peptides, weights=None)`
 
 Calculate per residue similarity scores and extract putative motifs after masking previously extracted motifs.
 
@@ -172,6 +172,40 @@ rerun_motif_discovery(peptides, masked_peptides)
   }
 }
 ```
+
+### Fasta File Processing Script
+
+A script is designed to process fasta files, perform motif discovery, and generate sequence logos. It utilizes the fastpace module for motif discovery and the logomaker library for creating sequence logos.
+
+#### Prerequisites
+
+- Before using this script, ensure that you have the required Python libraries installed. You can install them using the following command:
+```python
+pip install fastpace pandas matplotlib seaborn logomaker
+```
+- Clone the repository:
+```
+git clone https://github.com/hkotb/fastpace.git
+cd fastpace/test/
+```
+
+#### Run the script
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta [--draw_logo] [--sequence SEQUENCE] [--num_reruns NUM_RERUNS] [--refine REFINE]
+```
+
+#### Command-line Arguments
+
+- `--input_file`: The path to the input fasta file. (Required)
+- `--output_file`: The path to the output fasta file. (Required)
+- `--draw_logo`: Draw sequence logo of the best peptide or the peptide passed by --sequence. (Optional)
+- `--sequence`: Draw sequence logo of this peptide. (Optional)
+- `--num_reruns`: Number of times to rerun the algorithm before returning the results. (Default: 1)
+- `--refine`: Flag to run the refinement. (Default: 1)
+
+#### Examples
+
+
 
 ## Development
 
