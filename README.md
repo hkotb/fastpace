@@ -205,7 +205,38 @@ python fastpace_cmd.py --input_file input.fasta --output_file output.fasta [--dr
 
 #### Examples
 
+Basic Usage
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta
+```
 
+Drawing Sequence Logo
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta --draw_logo
+```
+
+Drawing Sequence Logo for a Specific Peptide
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta --draw_logo --sequence GATCGATCG
+```
+
+Running Multiple Reruns
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta --num_reruns 3
+```
+
+Running without Refinement
+```
+python fastpace_cmd.py --input_file input.fasta --output_file output.fasta --refine 0
+```
+
+#### Output
+
+The script generates an output fasta file, a JSON file containing the motif discovery results, and a PNG file containing the sequence logo (if `--draw_logo` is specified).
+
+- Output Fasta File: `output.fasta`
+- JSON Result File: `output.json`
+- Sequence Logo File: `output.png`
 
 ## Development
 
