@@ -134,20 +134,20 @@ rerun_motif_discovery(peptides, masked_peptides)
 {
   "refinement_iterations": 9,
   "consensus": {
-    "best_motif": ".*LE.*",
-    "best_motif_p_val": 0.06621679958183584,
-    "best_motif_significance": 1.0,
-    "best_motif_num_matches": 3,
-    "best_motif_coverage": 0.6
+    "best_motif": ".*D........LE.*",
+    "best_motif_p_val": 0.00033767412104890706,
+    "best_motif_significance": 0.41746722746831066,
+    "best_motif_num_matches": 2,
+    "best_motif_coverage": 0.4
   },
   "alignment": {
     "template": "CPVDPXXXXXAALENK",
     "aligned_sequences": {
-      "TSPDGGTTXXXXXSSL": "-TSPDGGTTXXXXXSSL-",
-      "SPEVXXXXXDFLEQPI": "--SPEVXXXXXDFLEQPI",
-      "CPVDPXXXXXAALENK": "-CPVDPXXXXXAALENK-",
-      "EPPLSQETXXXXXKLL": "-EPPLSQETXXXXXKLL-",
-      "APELDPXXXXXAALEG": "APELDPXXXXXAALEG--"
+      "TSPDGGTTXXXXXSSL": "TSPDGGTTXXXXXSSL----",
+      "SPEVXXXXXDFLEQPI": "----SPEVXXXXXDFLEQPI",
+      "CPVDPXXXXXAALENK": "---CPVDPXXXXXAALENK-",
+      "EPPLSQETXXXXXKLL": "EPPLSQETXXXXXKLL----",
+      "APELDPXXXXXAALEG": "--APELDPXXXXXAALEG--"
     }
   },
   "peptides": {
