@@ -175,7 +175,7 @@ rerun_motif_discovery(peptides, masked_peptides)
 
 ### Fasta File Processing Script
 
-A script is designed to process fasta files, perform motif discovery, and generate sequence logos. It utilizes the fastpace module for motif discovery and the logomaker library for creating sequence logos.
+A script is designed to process fasta files, align peptides, perform motif discovery, and generate sequence logos. It utilizes the fastpace module for motif discovery and the logomaker library for creating sequence logos.
 
 #### Prerequisites
 
@@ -232,7 +232,7 @@ python fastpace_cmd.py --input_file input.fasta --output_file output.fasta --ref
 
 #### Output
 
-The script generates an output fasta file, a JSON file containing the motif discovery results, and a PNG file containing the sequence logo (if `--draw_logo` is specified).
+The script generates an output fasta file of the aligned peptides, a JSON file containing the motif discovery results, and a PNG file containing the sequence logo (if `--draw_logo` is specified).
 
 - Output Fasta File: `output.fasta`
 - JSON Result File: `output.json`
