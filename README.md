@@ -132,7 +132,7 @@ rerun_motif_discovery(peptides, masked_peptides)
 **Output:**
 ```
 {
-  "refinement_iterations": 9,
+  "refinement_iterations": 23,
   "consensus": {
     "best_motif": ".*D........LE.*",
     "best_motif_p_val": 0.00033767412104890706,
