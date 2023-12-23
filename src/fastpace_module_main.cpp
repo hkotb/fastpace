@@ -168,7 +168,7 @@ static PyObject* rerun_motif_discovery(PyObject* self, PyObject* args, PyObject*
     return result_dict;
 }
 
-static char run_motif_discovery_docs[] = "run_motif_discovery(peptides, weights): Calculate per residue similarity scores, align peptides and extract putative motifs.\n";
+static char run_motif_discovery_docs[] = "run_motif_discovery(peptides, weights, refine, normalization_factor): Calculate per residue similarity scores, align peptides and extract putative motifs.\n";
 static char rerun_motif_discovery_docs[] = "rerun_motif_discovery(original_peptides, masked_peptides, weights): Calculate per residue similarity scores, extract putative motifs after masking previously extracted motifs.\n";
 
 static PyMethodDef module_funcs[] = {
