@@ -1,6 +1,6 @@
 # FaSTPACE: A Fast and Scalable Tool for Peptide Alignment and Consensus Extraction
 
-FaSTPACE (**Fa**st and **S**calable **T**ool for **P**eptide **A**lignment and **C**onsensus **E**xtraction) is a Python package implemented in C programming language.
+FaSTPACE (**Fa**st and **S**calable **T**ool for **P**eptide **A**lignment and **C**onsensus **E**xtraction) is a Python package implemented in C++ programming language.
 
 ## Table of contents
 * [Description](#description)
