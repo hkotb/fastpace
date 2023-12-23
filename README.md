@@ -34,7 +34,7 @@ Calculate per residue similarity scores, align peptides, and extract putative mo
 **Parameters:**
 - `peptides` (list): List of strings of standard sequence letters representing peptides in the dataset. It should contain 2 or more peptides. No sequence with less than 2 letters or longer than 32 characters is allowed.
 - `weights` (list, optional, default=None): List of positive numbers representing weights. The number of weights must be equal to the number of peptides. If not provided, each peptide is assigned a weight of 1.
-- `refine` (int, optional, default=1): Flag with 0 or 1. 0 means return the results after the initiation step. 1 means doing the refinement step.
+- `refine` (int, optional, default=1): Flag with 0 or 1. (0 means return the results after the initiation step, 1 means doing the refinement step)
 - `normalization_factor` (float, optional, default=-1): The dataset size is corrected to be equal to this number in order to compare different datasets with different sizes. It must be equal to or greater than 1. By default, -1 means to use the dataset size with no normalization.
 
 **Returns:**
