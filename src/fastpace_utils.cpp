@@ -276,7 +276,7 @@ MatchResult match_sequences(const char* sA, const char* sB, int n, int m, double
             if (x_i_indx == -1 || y_i_indx == -1) {
                 // Handle the case of a non-standard sequence letter
                 PyErr_SetString(PyExc_Exception, "Found a non-standard sequence letter");
-                MatchResult result = { .found_match = 0, .sA_scores = NULL, .sB_scores = NULL, .sA_matched_chars = NULL, .sB_matched_chars = NULL };
+                MatchResult result = { .found_match = 0, .match_score = 0, .alignment_start = 0, .sA_scores = NULL, .sB_scores = NULL, .sA_matched_chars = NULL, .sB_matched_chars = NULL };
                 return result;
             }
             

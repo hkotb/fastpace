@@ -7,12 +7,12 @@ except ImportError:
 
 file_path = os.path.dirname(inspect.stack()[0][1])
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
     name='fastpace',
-    version='0.8.0',
+    version='1.0.0',
     author="Hazem M. Kotb",
     author_email="hazem.mamdouh.kotb@gmail.com",
     description="FaSTPACE: A Fast and Scalable Tool for Peptide Alignment and Consensus Extraction",
