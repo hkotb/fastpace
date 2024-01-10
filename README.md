@@ -109,6 +109,48 @@ run_motif_discovery(peptides, refine=0)
   }
 }
 ```
+**Example with weighting:**
+```python
+peptides = ['TSPDGGTTFEHLWSSL', 'SPEVFQHIWDFLEQPI', 'CPVDPFEAQWAALENK', 'EPPLSQETFSDLWKLL', 'APELDPFEAQWAALEG']
+weights = [1, 2, 4, 1.5, 0.1]
+run_motif_discovery(peptides, weights)
+```
+
+**Output:**
+```
+{
+   "refinement_iterations":30,
+   "consensus":{
+      "best_motif":".*F...W..L.*",
+      "best_motif_p_val":4.030701364259203e-12,
+      "best_motif_significance":2.8327562517915794e-09,
+      "best_motif_num_matches":5,
+      "best_motif_coverage":1.0
+   },
+   "alignment":{
+      "template":"APELDPFEAQWAALEG",
+      "aligned_sequences":{
+         "TSPDGGTTFEHLWSSL":"TSPDGGTTFEHLWSSL----",
+         "SPEVFQHIWDFLEQPI":"----SPEVFQHIWDFLEQPI",
+         "CPVDPFEAQWAALENK":"---CPVDPFEAQWAALENK-",
+         "EPPLSQETFSDLWKLL":"EPPLSQETFSDLWKLL----",
+         "APELDPFEAQWAALEG":"--APELDPFEAQWAALEG--"
+      }
+   },
+  "peptides": {
+    "TSPDGGTTFEHLWSSL": {
+      "similarity_matrix": {
+        // ...
+      },
+      // ...
+    },
+    "SPEVFQHIWDFLEQPI": {
+      // ...
+    },
+    // ...
+  }
+}
+```
 
 #### `rerun_motif_discovery(original_peptides, masked_peptides, weights=None)`
 
