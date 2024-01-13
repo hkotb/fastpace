@@ -133,6 +133,7 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
     double total_weights = 0;
     int maximum_score = 0;
     int error = 0;
+    int show_warning = 1;
     int average_peptide_length = 0;
     for (int i = 0; i < peptides_num; i++)
     {
@@ -146,10 +147,9 @@ Dataset parse_dataset(PyObject* peptides_list, PyObject* weights_list) {
             error = 1;
             break;
         }
-        if (peptides_lengths[i] > 32) {
-            PyErr_SetString(PyExc_Exception, "FaSTPACE is not tested on sequences longer than 32 characters.\nIf it is required to increase this limit, the static arrays (regex_str, pos_str) in the extract_putative_motifs function should be increased accordingly or changed to dynamic arrays as their maximum size now is 256 chars.\nHowever, this will violate the SLiM definition, so it is recommended to tweak the algorithm by setting a maximum motif length to make it suitable for longer sequences.");
-            error = 1;
-            break;
+        if (peptides_lengths[i] > 32 && show_warning) {
+            PyErr_WarnEx(PyExc_UserWarning, "FaSTPACE is not tested on sequences longer than 32 characters.\nThe static arrays (regex_str, pos_str) in the extract_putative_motifs function might need to be increased accordingly or changed to dynamic arrays as their maximum size now is 256 chars.\nHowever, this will violate the SLiM definition, so it is recommended to tweak the algorithm by setting a maximum motif length to make it suitable for longer sequences.", 1);
+            show_warning = 0;
         }
         if (weights_list != NULL && weights_list != Py_None)
         {
