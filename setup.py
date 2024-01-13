@@ -12,7 +12,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setup(
     name='fastpace',
-    version='1.0.0',
+    version='1.0.1',
     author="Hazem M. Kotb",
     author_email="hazem.mamdouh.kotb@gmail.com",
     description="FaSTPACE: A Fast and Scalable Tool for Peptide Alignment and Consensus Extraction",
