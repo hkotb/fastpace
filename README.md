@@ -242,7 +242,7 @@ python fastpace_cmd.py --input_file input.fasta --output_file output.fasta [--dr
 - `--output_file`: The path to the output fasta file. (Required)
 - `--draw_logo`: Draw sequence logo of the best peptide or the peptide passed by --sequence. (Optional)
 - `--sequence`: Draw sequence logo of this peptide. (Optional)
-- `--num_reruns`: Number of times to rerun the algorithm before returning the results. (Default: 1)
+- `--num_reruns`: Number of times to rerun the algorithm before returning the results. This is useful for identifying multiple motifs. For instance, to discover a second motif after masking the first one found, set 'num_reruns' to 2. (Default: 1)
 - `--refine`: Flag to run the refinement. (Default: 1)
 
 #### Examples
