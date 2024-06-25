@@ -45,8 +45,7 @@ After the job is completed, you will receive detailed information about the best
     </tbody>
     </table>
 
-    - Sequence Logo: Displaying the peptide with the highest residue score in its similarity matrix.
-    - Regular Expression: The best-p-value motif extracted from a peptide's similarity matrix. The allowable characters for building the regular expression are listed below:
+    - Enriched Motif: Regular expression of the best-p-value motif extracted from a peptide's similarity matrix. The allowable characters for building the regular expression are listed below:
     <table align="center">
     <thead>
     <tr>
@@ -67,10 +66,27 @@ After the job is completed, you will receive detailed information about the best
     </table>
     
     - Best Extracted Motif Scores: 
-        - Significance.
-        - p-value.
-        - Number of mateched instances.
-        - Coverage.
+        - Sig: The significance score of the motif with the highest P-value in the dataset.
+        - P-value: The highest P-value of a motif in the dataset..
+        - Instances: Number of peptides matching the motif.
+        - Coverage:  Number of matches Percentage in the total number of peptides in the dataset.
+    - Sequence Logo: Displaying the peptide with the highest residue score in its similarity matrix. It can be downloaded in SVG and PNG formats.
+
+- Downloads Section: This section
+
+    <table align="center">
+    <thead>
+    <tr>
+    <th align="center"><a target="_blank" rel="noopener noreferrer nofollow" href="https://raw.githubusercontent.com/hkotb/fastpace/master/img/downloads.png"><img align="center" src="https://raw.githubusercontent.com/hkotb/fastpace/master/img/downloads.png"></a></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td align="center"><strong>Figure 4</strong> The Downloads Section Interface within the FaSTPACE Web Server.</td>
+    </tr>
+    </tbody>
+    </table>
+
 - Alignment Section: This section displays a table with the following columns:
   
     <table align="center">
@@ -81,7 +97,7 @@ After the job is completed, you will receive detailed information about the best
     </thead>
     <tbody>
     <tr>
-    <td align="center"><strong>Figure 4</strong> The Alignment Section Interface within the FaSTPACE Web Server.</td>
+    <td align="center"><strong>Figure 5</strong> The Alignment Section Interface within the FaSTPACE Web Server.</td>
     </tr>
     </tbody>
     </table>
