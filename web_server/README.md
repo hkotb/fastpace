@@ -19,7 +19,7 @@ The core of the algorithm produces a refined global similarity matrix from which
 
 Load peptides or click on one of the example buttons to load a test set. Please note that input peptides must not contain non-standard amino acids.
 
-#### Input Formats: You can enter peptides in two different formats:
+##### Input Formats: You can enter peptides in two different formats:
 
 - List of Peptides: Each peptide should be on a separate line. Optionally, you can include weights separated by a space.
 - FASTA Format: You can also input peptides in the standard FASTA format.
