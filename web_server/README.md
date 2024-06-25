@@ -87,10 +87,10 @@ After the job is completed, you will receive detailed information about the best
     </tbody>
     </table>
 
-  - peptides JSON:
-  - consensus JSON:
-  - alignment JSON:
-  - alignment FASTA:
+  - peptides JSON: Downloads a JSON file containing JSON object for each peptide with its similarity matrix and all calculated scores based on the motif extracted from its similarity matrix, matching to the best motif, and aligning to the template peptide.
+  - consensus JSON: Downloads a JSON file containing a JSON object of the best motif extracted from the dataset and its calculated scores.
+  - alignment JSON: Downloads a file of the alignment in JSON format.
+  - alignment FASTA: Downloads a file of the alignment in FASTA format.
 
 - Alignment Section: This section displays a table with the following columns:
   
