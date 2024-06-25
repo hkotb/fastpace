@@ -66,13 +66,13 @@ After the job is completed, you will receive detailed information about the best
     </table>
     
     - Best Extracted Motif Scores: 
-        - Sig: The significance score of the motif with the highest P-value in the dataset.
-        - P-value: The highest P-value of a motif in the dataset..
+        - Sig: The significance score of the motif with the highest p-value in the dataset.
+        - P-value: The highest p-value of a motif in the dataset.
         - Instances: Number of peptides matching the motif.
         - Coverage:  Number of matches Percentage in the total number of peptides in the dataset.
     - Sequence Logo: Displaying the peptide with the highest residue score in its similarity matrix. It can be downloaded in SVG and PNG formats.
 
-- Downloads Section: This section
+- Downloads Section: This section provides the results in downloadable formats:
 
     <table align="center">
     <thead>
@@ -86,6 +86,11 @@ After the job is completed, you will receive detailed information about the best
     </tr>
     </tbody>
     </table>
+
+  - peptides JSON:
+  - consensus JSON:
+  - alignment JSON:
+  - alignment FASTA:
 
 - Alignment Section: This section displays a table with the following columns:
   
@@ -102,11 +107,11 @@ After the job is completed, you will receive detailed information about the best
     </tbody>
     </table>
 
-    - Aligned peptide.
-    - Score.
-    - Score.
-    - Motif.
-    - Score.
+    - Peptide: The alignment of the peptide to the template peptide using their global similarity matrices.
+    - Alignment Score: Alignment score calculated by aligning the peptide to the template peptide using their global similarity matrices.
+    - Motif Similarity Score: The p-value of the motif extracted from the peptid's global similarity matrix.
+    - Motif: Regular expression of the motif extracted from the peptide's global similarity matrix.
+    - Coverage: Number of peptides matching the motif extracted from this peptide (Number of matches Percentage in the total number of peptides in the dataset).
 
 ## Technology Stack
 - Backend: Our backend is powered by the [Python](https://www.python.org/) programming language, with the main functionality implemented in C/C++. We utilise [SciPy](https://scipy.org/) C++ binomial distribution files as part of our open-source Python package. Additionally, we leverage [FastAPI](https://fastapi.tiangolo.com/) for our APIs, and internally, [Apache Kafka](https://kafka.apache.org/) is used for data import from internal pipelines.
