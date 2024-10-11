@@ -306,6 +306,19 @@ This source code is licensed under the MIT license found in the `LICENSE` file i
 
 If you find the pipeline useful in your research, we ask that you cite our paper:
 ```
-Coming soon.
+@article{10.1093/nargab/lqae103,
+    author = {Kotb, Hazem M and Davey, Norman E},
+    title = "{FaSTPACE: a fast and scalable tool for peptide alignment and consensus extraction}",
+    journal = {NAR Genomics and Bioinformatics},
+    volume = {6},
+    number = {3},
+    pages = {lqae103},
+    year = {2024},
+    month = {08},
+    issn = {2631-9268},
+    doi = {10.1093/nargab/lqae103},
+    url = {https://doi.org/10.1093/nargab/lqae103},
+    eprint = {https://academic.oup.com/nargab/article-pdf/6/3/lqae103/58878780/lqae103.pdf},
+}
 ```
 
