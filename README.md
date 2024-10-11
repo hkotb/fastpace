@@ -13,7 +13,7 @@ FaSTPACE (**Fa**st and **S**calable **T**ool for **P**eptide **A**lignment and *
 
 ![FaSTPACE algorithm](https://raw.githubusercontent.com/hkotb/fastpace/master/img/algorithm.png)
 
-The core of the algorithm produces a refined global similarity matrix from which these outputs are produced. A global similarity matrix is a probabilistic representation of the similarity of the peptide to all other peptides in the dataset. The method consists of three steps: initiation, refinement and post-processing of the global similarity matrix.
+The output of FaSTPACE is a peptide alignment and the most enriched motif, the motif consensus that is most overrepresented compared to its expected number of occurrences in the set of peptides. The enriched motif is returned with a set of metrics describing the level of enrichment of the motif. The core of the algorithm produces a refined global similarity matrix from which these outputs are produced. A global similarity matrix is a probabilistic representation of the similarity of the peptide to all other peptides in the dataset. The method consists of three steps: initiation, refinement and post-processing of the global similarity matrix.
 
 ## Usage
 
